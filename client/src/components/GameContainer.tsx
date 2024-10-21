@@ -21,6 +21,12 @@ const GameContainer: React.FC<GameContainerProps> = ({ roomName }) => {
       height: 600,
       scene: GameScene,
       parent: 'game-container',
+      physics: {
+        default: 'arcade',
+        arcade: {
+          debug: true
+        }
+      }
     };
 
     const game = new Phaser.Game(config);

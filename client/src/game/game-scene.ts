@@ -6,11 +6,12 @@ interface Player {
   id: string;
   x: number;
   y: number;
+  
 }
 
 export default class GameScene extends Phaser.Scene {
   private players: { [id: string]: Phaser.GameObjects.Rectangle } = {};
-  private static readonly PLAYER_SIZE = 50;
+  private static readonly PLAYER_SIZE = 25;
 
   constructor() {
     super({ key: 'GameScene' });
