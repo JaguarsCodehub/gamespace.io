@@ -17,8 +17,8 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 
-// Store connected players
-const players: { [id: string]: Player } = {};
+// Store players per room
+const rooms: { [room: string]: { [id: string]: Player } } = {};
 
 // API route (example)
 app.get('/api/test', (req, res) => {
@@ -29,39 +29,40 @@ app.get('/api/test', (req, res) => {
 io.on('connection', (socket) => {
   console.log(`Player connected: ${socket.id}`);
 
-  // Create new player
-  const player = new Player(socket.id);
-  players[socket.id] = player;
-
-  // Broadcast the new player to all clients
-  io.emit('playerConnected', player);
-
-  // Send the current list of players to the newly connected client
-  socket.emit('currentPlayers', players);
-
-  // Handle player movement
-  socket.on('move', (data: { x: number; y: number }) => {
-    const player = players[socket.id];
-    if (player) {
-      player.x = data.x;
-      player.y = data.y;
-
-      // Broadcast updated position to all other clients
-      socket.broadcast.emit('playerMoved', {
-        id: player.id,
-        x: player.x,
-        y: player.y,
-      });
+  socket.on('joinRoom', (roomName: string) => {
+    if (!rooms[roomName]) {
+      rooms[roomName] = {};
     }
-  });
+  
+    // Create new player and add them to the room
+    const player = new Player(socket.id);
+    rooms[roomName][socket.id] = player;
+    socket.join(roomName);
 
-  // Handle player disconnection
-  socket.on('disconnect', () => {
-    console.log(`Player disconnected: ${socket.id}`);
-    delete players[socket.id];
+    // Send the current players in the room to the new player
+    socket.emit('currentPlayers', rooms[roomName]);
 
-    // Broadcast the player disconnection to all clients
-    io.emit('playerDisconnected', socket.id);
+    // Notify other players in the room about the new player
+    socket.to(roomName).emit('playerConnected', player);
+
+    // Handle player movement within the room
+    socket.on('move', (data: { x: number; y: number }) => {
+      const player = rooms[roomName][socket.id];
+      if (player) {
+        player.x = data.x;
+        player.y = data.y;
+        // Broadcast the updated position to other players in the room
+        socket.to(roomName).emit('playerMoved', { id: player.id, x: player.x, y: player.y });
+      }
+    });
+
+    // Handle player disconnect
+    socket.on('disconnect', () => {
+      console.log(`Player disconnected: ${socket.id}`);
+      delete rooms[roomName][socket.id];
+      // Notify other players in the room about the disconnection
+      socket.to(roomName).emit('playerDisconnected', socket.id);
+    });
   });
 });
 
