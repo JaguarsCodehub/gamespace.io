@@ -1,39 +1,53 @@
 import * as Phaser from 'phaser';
 import socket from './socket';
-// import { Socket } from 'socket.io-client';
 
 interface Player {
   id: string;
   x: number;
   y: number;
-  
+  avatar?: string;
 }
 
 export default class GameScene extends Phaser.Scene {
-  private players: { [id: string]: Phaser.GameObjects.Rectangle } = {};
-  private static readonly PLAYER_SIZE = 25;
+  private players: { [id: string]: Phaser.GameObjects.Image } = {};
+  private static readonly PLAYER_SIZE = 60;
+  private roomName: string = 'default'; // You can change this or make it dynamic
 
   constructor() {
     super({ key: 'GameScene' });
   }
 
   preload() {
-    // Preload assets if needed
+    // Preload assets if needed   
+    this.load.image('background', '/assets/map.png');
+    this.load.image('avatar1', '/assets/avatar1.png');
+    this.load.image('avatar2', '/assets/avatar2.png');
+    console.log('Assets preloaded');
   }
 
   create() {
     // Initialize the players object
     this.players = {};
 
+    // Add a background image
+    this.add.image(0, 0, 'background').setOrigin(0, 0);
+
+    // Join a room
+    socket.emit('joinRoom', this.roomName);
+
     // Set up socket event listeners
     this.setupSocketListeners();
 
     // Set up keyboard input
     this.setupKeyboardInput();
+
+    // Request current players from the server
+    socket.emit('getPlayers');
   }
 
   private setupSocketListeners() {
     socket.on('currentPlayers', (players: { [id: string]: Player }) => {
+      console.log('Received currentPlayers:', players);
       Object.values(players).forEach((player) => {
         this.addPlayer(player);
       });
@@ -61,10 +75,19 @@ export default class GameScene extends Phaser.Scene {
 
   private addPlayer(player: Player) {
     try {
-      if (this.players[player.id]) return;
+      if (this.players[player.id]) {
+        console.log('Player already exists:', player.id);
+        return;
+      }
 
-      console.log('Adding player:', player.id);
-      const newPlayer = this.add.rectangle(player.x, player.y, GameScene.PLAYER_SIZE, GameScene.PLAYER_SIZE, 0xff0000);
+      // Assign a random avatar if not provided
+      const avatars = ['avatar1', 'avatar2'];
+      const avatarKey = player.avatar || avatars[Math.floor(Math.random() * avatars.length)];
+
+      console.log('Adding player:', player.id, 'with avatar:', avatarKey);
+      const newPlayer = this.add.image(player.x, player.y, avatarKey);
+      newPlayer.setScale(GameScene.PLAYER_SIZE / newPlayer.width);
+
       this.players[player.id] = newPlayer;
       console.log('Player added successfully');
     } catch (error) {

@@ -1,0 +1,32 @@
+.gameContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background-color: #082f39;
+  min-height: 100vh;
+}
+
+.gameTitle {
+  font-size: 2.5rem;
+  color: #ffffff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  margin-bottom: 20px;
+}
+
+.gameWrapper {
+  border: 4px solid #4a4a4a;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  align-items: center;
+  justify-content: center;
+}
+
+.phaserGame {
+  width: 800px;
+  height: 600px;
+  align-items: center;
+  justify-content: center;
+}
+

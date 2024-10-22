@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import * as Phaser from 'phaser';
 import GameScene from '@/game/game-scene';
 import socket from '@/game/socket'; // Import your Socket.IO client setup
+import styles from './GameContainer.module.css'; // We'll create this CSS module
 
 interface GameContainerProps {
   roomName: string;
@@ -20,7 +21,7 @@ const GameContainer: React.FC<GameContainerProps> = ({ roomName }) => {
       width: 800,
       height: 600,
       scene: GameScene,
-      parent: 'game-container',
+      parent: 'phaser-game',
       physics: {
         default: 'arcade',
         arcade: {
@@ -36,7 +37,14 @@ const GameContainer: React.FC<GameContainerProps> = ({ roomName }) => {
     };
   }, [roomName]);
 
-  return <div id='game-container' />;
+  return (
+    <div className={styles.gameContainer}>
+      <h1 className={styles.gameTitle}>gamespace.io</h1>
+      <div className={styles.gameWrapper}>
+        <div id='phaser-game' className={styles.phaserGame} />
+      </div>
+    </div>
+  );
 };
 
 export default GameContainer;

@@ -63,6 +63,11 @@ io.on('connection', (socket) => {
       // Notify other players in the room about the disconnection
       socket.to(roomName).emit('playerDisconnected', socket.id);
     });
+
+    // Handle getPlayers request
+    socket.on('getPlayers', () => {
+      socket.emit('currentPlayers', rooms[roomName]);
+    });
   });
 });
 
